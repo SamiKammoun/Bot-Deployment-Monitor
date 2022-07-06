@@ -1,53 +1,59 @@
-import { FindingType, FindingSeverity, Finding, HandleTransaction, createTransactionEvent, ethers } from "forta-agent";
-import agent, { ERC20_TRANSFER_EVENT, TETHER_ADDRESS, TETHER_DECIMALS } from "./agent";
+import { FindingSeverity, FindingType, Finding, createTransactionEvent, HandleTransaction } from "forta-agent";
+import { CREATE_AGENT_FUNCTION, NETHERMIND_DEPLOYER_ADDRESS } from "./constants";
+import { provideHandleTransaction } from "./agent";
 
-describe("high tether transfer agent", () => {
+describe("Agent creation function call", () => {
   let handleTransaction: HandleTransaction;
-  const mockTxEvent = createTransactionEvent({} as any);
-
   beforeAll(() => {
-    handleTransaction = agent.handleTransaction;
+    handleTransaction = provideHandleTransaction(NETHERMIND_DEPLOYER_ADDRESS);
   });
-
-  describe("handleTransaction", () => {
-    it("returns empty findings if there are no Tether transfers", async () => {
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([]);
-
-      const findings = await handleTransaction(mockTxEvent);
-
-      expect(findings).toStrictEqual([]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(ERC20_TRANSFER_EVENT, TETHER_ADDRESS);
-    });
-
-    it("returns a finding if there is a Tether transfer over 10,000", async () => {
-      const mockTetherTransferEvent = {
-        args: {
-          from: "0xabc",
-          to: "0xdef",
-          value: ethers.BigNumber.from("20000000000"), //20k with 6 decimals
+  it("returns empty finding if there are no agent creation", async () => {
+    const mockTxEvent = createTransactionEvent({ transaction: { from: NETHERMIND_DEPLOYER_ADDRESS } } as any);
+    mockTxEvent.filterFunction = jest.fn().mockReturnValue([]);
+    const findings = await handleTransaction(mockTxEvent);
+    expect(findings).toStrictEqual([]);
+    expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
+    expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(CREATE_AGENT_FUNCTION);
+  });
+  it("returns empty finding if there are agents creations but not from Nethermind", async () => {
+    const mockTxEvent = createTransactionEvent({ transaction: { from: "0x00" } } as any);
+    const mockAgentCreationFunction = {
+      args: {
+        agentId: BigInt("1"),
+        owner: "0x00",
+        metadata: "",
+        chainIds: [BigInt("1")],
+      },
+    };
+    mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockAgentCreationFunction]);
+    const findings = await handleTransaction(mockTxEvent);
+    expect(findings).toStrictEqual([]);
+    expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(0);
+  });
+  it("returns findings if there are agents creations from Nethermind", async () => {
+    const mockTxEvent = createTransactionEvent({ transaction: { from: NETHERMIND_DEPLOYER_ADDRESS } } as any);
+    const mockAgentCreationFunction = {
+      args: {
+        agentId: BigInt("1"),
+        owner: "0x00",
+        metadata: "",
+        chainIds: [BigInt("1"), BigInt("3")],
+      },
+    };
+    mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockAgentCreationFunction]);
+    const findings = await handleTransaction(mockTxEvent);
+    expect(findings).toStrictEqual([
+      Finding.fromObject({
+        alertId: "NETHAGENT-1",
+        description: `Agent with id:1 created`,
+        name: "Nethermind agent created",
+        severity: FindingSeverity.Info,
+        type: FindingType.Info,
+        metadata: {
+          metadata: "",
+          chainIds: "1,3",
         },
-      };
-      mockTxEvent.filterLog = jest.fn().mockReturnValue([mockTetherTransferEvent]);
-
-      const findings = await handleTransaction(mockTxEvent);
-
-      const normalizedValue = mockTetherTransferEvent.args.value.div(10 ** TETHER_DECIMALS);
-      expect(findings).toStrictEqual([
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to: mockTetherTransferEvent.args.to,
-            from: mockTetherTransferEvent.args.from,
-          },
-        }),
-      ]);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledTimes(1);
-      expect(mockTxEvent.filterLog).toHaveBeenCalledWith(ERC20_TRANSFER_EVENT, TETHER_ADDRESS);
-    });
+      }),
+    ]);
   });
 });
