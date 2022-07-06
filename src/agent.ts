@@ -17,5 +17,5 @@ export const provideHandleTransaction = (addressToWatch: string): HandleTransact
 };
 
 export default {
-  handleTransaction: provideHandleTransaction(constants.NETHERMIND_DEPLOYER_ADDRESS),
+  handleTransaction: provideHandleTransaction(NETHERMIND_DEPLOYER_ADDRESS),
 };
