@@ -4,9 +4,11 @@
   "description": "Forta Agent Typescript starter project",
   "chainIds": [
     1,
-    137
+    137,
+    31337
   ],
   "scripts": {
+    "format": "prettier --write \"src/**/*.ts\"",
     "build": "tsc",
     "start": "npm run start:dev",
     "start:dev": "nodemon --watch src --watch forta.config.json -e js,ts,json  --exec \"npm run build && forta-agent run\"",
@@ -25,7 +27,8 @@
     "test": "jest"
   },
   "dependencies": {
-    "forta-agent": "^0.1.8"
+    "forta-agent": "^0.1.8",
+    "prettier": "^2.7.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

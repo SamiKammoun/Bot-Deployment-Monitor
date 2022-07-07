@@ -4,13 +4,17 @@ import { provideHandleTransaction } from "./agent";
 
 describe("Agent creation function call", () => {
   let handleTransaction: HandleTransaction;
+
   beforeAll(() => {
     handleTransaction = provideHandleTransaction(NETHERMIND_DEPLOYER_ADDRESS);
   });
+
   it("returns empty finding if there are no agent creation", async () => {
     const mockTxEvent = createTransactionEvent({ transaction: { from: NETHERMIND_DEPLOYER_ADDRESS } } as any);
     mockTxEvent.filterFunction = jest.fn().mockReturnValue([]);
+
     const findings = await handleTransaction(mockTxEvent);
+
     expect(findings).toStrictEqual([]);
     expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
     expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(CREATE_AGENT_FUNCTION);
@@ -26,7 +30,9 @@ describe("Agent creation function call", () => {
       },
     };
     mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockAgentCreationFunction]);
+
     const findings = await handleTransaction(mockTxEvent);
+
     expect(findings).toStrictEqual([]);
     expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(0);
   });
@@ -41,7 +47,9 @@ describe("Agent creation function call", () => {
       },
     };
     mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockAgentCreationFunction]);
+
     const findings = await handleTransaction(mockTxEvent);
+
     expect(findings).toStrictEqual([
       Finding.fromObject({
         alertId: "NETHAGENT-1",
