@@ -49,6 +49,7 @@ describe("Agent creation function call", () => {
         metadata: "",
         chainIds: [BigInt("1"), BigInt("3")],
       },
+      protocol: "polygon",
     };
     mockTxEvent.filterFunction = jest.fn().mockReturnValue([mockAgentCreationFunction]);
 
@@ -65,6 +66,7 @@ describe("Agent creation function call", () => {
           metadata: "",
           chainIds: "1,3",
         },
+        protocol: "polygon",
       }),
     ]);
   });

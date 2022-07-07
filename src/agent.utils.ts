@@ -11,5 +11,6 @@ export const createNewAgentFinding = (agentId: bigint, _metadata: string, _chain
       metadata: _metadata,
       chainIds: _chainIds.toString(),
     },
+    protocol: "polygon",
   });
 };
