@@ -1,5 +1,5 @@
 import { FindingSeverity, FindingType, Finding, createTransactionEvent, HandleTransaction } from "forta-agent";
-import { CREATE_AGENT_FUNCTION, NETHERMIND_DEPLOYER_ADDRESS } from "./constants";
+import { CREATE_AGENT_FUNCTION, FORTA_PROXY_ADDRESS, NETHERMIND_DEPLOYER_ADDRESS } from "./constants";
 import { provideHandleTransaction } from "./agent";
 
 describe("Agent creation function call", () => {
@@ -10,14 +10,16 @@ describe("Agent creation function call", () => {
   });
 
   it("returns empty finding if there are no agent creation", async () => {
-    const mockTxEvent = createTransactionEvent({ transaction: { from: NETHERMIND_DEPLOYER_ADDRESS } } as any);
+    const mockTxEvent = createTransactionEvent({
+      transaction: { from: NETHERMIND_DEPLOYER_ADDRESS, to: FORTA_PROXY_ADDRESS },
+    } as any);
     mockTxEvent.filterFunction = jest.fn().mockReturnValue([]);
 
     const findings = await handleTransaction(mockTxEvent);
 
     expect(findings).toStrictEqual([]);
     expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(1);
-    expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(CREATE_AGENT_FUNCTION);
+    expect(mockTxEvent.filterFunction).toHaveBeenCalledWith(CREATE_AGENT_FUNCTION, FORTA_PROXY_ADDRESS);
   });
   it("returns empty finding if there are agents creations but not from Nethermind", async () => {
     const mockTxEvent = createTransactionEvent({ transaction: { from: "0x00" } } as any);
@@ -37,7 +39,9 @@ describe("Agent creation function call", () => {
     expect(mockTxEvent.filterFunction).toHaveBeenCalledTimes(0);
   });
   it("returns findings if there are agents creations from Nethermind", async () => {
-    const mockTxEvent = createTransactionEvent({ transaction: { from: NETHERMIND_DEPLOYER_ADDRESS } } as any);
+    const mockTxEvent = createTransactionEvent({
+      transaction: { from: NETHERMIND_DEPLOYER_ADDRESS, to: FORTA_PROXY_ADDRESS },
+    } as any);
     const mockAgentCreationFunction = {
       args: {
         agentId: BigInt("1"),

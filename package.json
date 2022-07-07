@@ -4,8 +4,7 @@
   "description": "Forta Agent Typescript starter project",
   "chainIds": [
     1,
-    137,
-    31337
+    137
   ],
   "scripts": {
     "format": "prettier --write \"src/**/*.ts\"",
