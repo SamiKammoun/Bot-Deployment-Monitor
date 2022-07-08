@@ -24,6 +24,4 @@ The agent behaviour can be verified with the following transactions:
 
 - `0x7b3a2acef6aa72c80eaf036357e11f2ee5931f2eea8b546421e5ea18b299b4ee` (call `createAgent` function)
 
-## TODO:
 
-Find an RPC endpoint that supports tracing to test the agent.
